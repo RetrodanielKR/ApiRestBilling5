@@ -29,6 +29,13 @@ namespace ApiRestBilling5.Controllers
         }
 
         // GET api/<SuppliersController>/5
+
+
+
+
+
+
+
         [HttpGet("{id}")]
         public string Get(int id)
         {
