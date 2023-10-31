@@ -20,6 +20,6 @@ namespace ApiRestBilling5.Models
         public Order Order { get; set; }
         [ForeignKey("ProductId")]
         public Product Product { get; set; }
-
+        public decimal Subtotal { get; internal set; }
     }
 }

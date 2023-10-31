@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiRestBilling5.Data;
 using ApiRestBilling5.Models;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect.Configuration;
+using System.Security.Cryptography;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ApiRestBilling.Controllers
 {
@@ -92,11 +95,39 @@ namespace ApiRestBilling.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.Orders'  is null.");
             }
+
+            decimal? totalOrden = 0;
+
+            foreach (var oi in order.OrderItems)
+            {
+
+                var producto = await _context.Products.FindAsync(oi.ProductId);
+                if (producto == null)
+                {
+                    return BadRequest($"el producto con ID {oi.ProductId} no fue encontrado");
+                }
+
+                oi.UnitPrice = producto.UnitPrice;
+
+                oi.Subtotal = oi.UnitPrice * oi.Quantity;
+
+                totalOrden += oi.Subtotal;
+
+            
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetOrder", new { id = order.Id }, order);
         }
+
+            order.TotalAmount = Convert.ToDecimal(totalOrden);
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetOrder", new { id = order.Id }, order );
+
+            }
 
         // DELETE: api/Orders/5
         [HttpDelete("{id}")]
