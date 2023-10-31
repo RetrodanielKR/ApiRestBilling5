@@ -17,7 +17,7 @@ namespace ApiRestBilling5.Models
         public string Package { get; set; } = string.Empty;
         public bool IsDiscontinued { get; set; } = false;
         [ForeignKey("SupplierId")]
-        public Supplier Supplier { get; set; }
+        public Supplier? Supplier { get; set; }
         public ICollection<OrderItem>? OrderItems { get; set; }
 
     }
