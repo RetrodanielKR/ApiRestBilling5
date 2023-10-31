@@ -10,6 +10,7 @@ using ApiRestBilling5.Models;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect.Configuration;
 using System.Security.Cryptography;
 using System.Reflection.Metadata.Ecma335;
+using ApiRestBilling5.Services;
 
 namespace ApiRestBilling.Controllers
 {
@@ -19,9 +20,13 @@ namespace ApiRestBilling.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public OrdersController(ApplicationDbContext context)
+        private readonly IPurchaseOrdersService _purchaseOrdersService;
+
+
+        public OrdersController(ApplicationDbContext context, IPurchaseOrdersService purchaseOrdersService)
         {
             _context = context;
+            _purchaseOrdersService = purchaseOrdersService; 
         }
 
         // GET: api/Orders
