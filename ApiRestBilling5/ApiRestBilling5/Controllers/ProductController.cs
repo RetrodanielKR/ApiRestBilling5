@@ -46,29 +46,39 @@ namespace ApiRestBilling.Controllers
 
         // POST api/<ProductsController>
         [HttpPost]
-        public async Task<ActionResult<Product>> Post([FromBody] Product product)
+        public async Task<ActionResult<IEnumerable<Product>>> Post([FromBody] List<Product> products)
         {
-            if (product == null)
+            if (_context.Products == null || products == null || products.Count == 0)
             {
-                return BadRequest();
+                return BadRequest("Datos no válidos o faltantes.");
             }
 
-            _context.Products.Add(product);
+            // Recorre la lista de productos y agrégales su proveedor.
+            foreach (var product in products)
+            {
+                if (product.SupplierId == 0)
+                {
+                    // Puedes manejar la lógica para asignar un proveedor por defecto aquí si es necesario.
+                }
+
+                _context.Products.Add(product);
+            }
+
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { id = product.Id }, product);
+            return products;
         }
 
         // PUT api/<ProductsController>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Product product)
+        public async Task<IActionResult> Put(int id, [FromBody] Product Updateproduct)
         {
-            if (id != product.Id)
+            if (id != Updateproduct.Id)
             {
-                return BadRequest();
+                return BadRequest("Mal echo");
             }
 
-            _context.Entry(product).State = EntityState.Modified;
+            _context.Entry(Updateproduct).State = EntityState.Modified;
 
             try
             {
@@ -82,7 +92,7 @@ namespace ApiRestBilling.Controllers
                 }
                 else
                 {
-                    return BadRequest();
+                    throw;
                 }
             }
 

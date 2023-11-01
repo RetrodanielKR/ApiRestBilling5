@@ -18,7 +18,7 @@ namespace ApiRestBilling.Controllers
 
         public CustomerController(ApplicationDbContext context)
         {
-            _context = context;
+            this._context = context;
         }
 
         // GET: api/Customers
@@ -84,20 +84,21 @@ namespace ApiRestBilling.Controllers
         // POST: api/Customers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
-        {
-            if (_context.Customers == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Customers'  is null.");
-            }
-            _context.Customers.Add(customer);
-            await _context.SaveChangesAsync();
+        public async Task<ActionResult<IEnumerable<Customer>>> PostCustomers([FromBody] List<Customer> customers)
+{
+    if (_context.Customers == null || customers == null || customers.Count == 0)
+    {
+        return BadRequest("Datos no válidos o faltantes.");
+    }
 
-            return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
-        }
+    _context.Customers.AddRange(customers);
+    await _context.SaveChangesAsync();
 
-        // DELETE: api/Customers/5
-        [HttpDelete("{id}")]
+    return customers;
+}
+
+// DELETE: api/Customers/5
+[HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
             if (_context.Customers == null)
