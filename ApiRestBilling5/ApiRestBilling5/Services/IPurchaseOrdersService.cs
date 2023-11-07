@@ -4,8 +4,8 @@ namespace ApiRestBilling5.Services
 {
     public interface IPurchaseOrdersService
     {
-        Task<decimal> ChekUnitPrice(OrderItem detalle);
-        Task<decimal> CalculateSubtotalOrdenItem(OrderItem item);
-        decimal CalculateSubtotal(List<OrderItem> item);
+        Task<decimal> CheckUnitPrice(OrderItem detalle);
+        Task<decimal> CalculateSubtotalOrderItem(OrderItem item);
+        decimal CalcularTotalOrderItems(List<OrderItem> items);
     }
 }

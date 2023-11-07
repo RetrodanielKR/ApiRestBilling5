@@ -16,14 +16,14 @@ namespace ApiRestBilling.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController : ControllerBase
+    public class OrderController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
         private readonly IPurchaseOrdersService _purchaseOrdersService;
+        private OrderItem detalle;
 
-
-        public OrdersController(ApplicationDbContext context, IPurchaseOrdersService purchaseOrdersService)
+        public OrderController(ApplicationDbContext context, IPurchaseOrdersService purchaseOrdersService)
         {
             _context = context;
             _purchaseOrdersService = purchaseOrdersService; 
@@ -97,43 +97,29 @@ namespace ApiRestBilling.Controllers
         public async Task<ActionResult<Order>> PostOrder(Order order)
         {
             if (_context.Orders == null)
+
             {
                 return Problem("Entity set 'ApplicationDbContext.Orders'  is null.");
             }
 
-            decimal? totalOrden = 0;
 
-            foreach (var oi in order.OrderItems)
+            foreach (var datelle in order.OrderItems)
+
             {
+                datelle.UnitPrice = await _purchaseOrdersService.CheckUnitPrice(detalle);
 
-                var producto = await _context.Products.FindAsync(oi.ProductId);
-                if (producto == null)
-                {
-                    return BadRequest($"el producto con ID {oi.ProductId} no fue encontrado");
-                }
-
-                oi.UnitPrice = producto.UnitPrice;
-
-                oi.Subtotal = oi.UnitPrice * oi.Quantity;
-
-                totalOrden += oi.Subtotal;
-
-            
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetOrder", new { id = order.Id }, order);
-        }
-
-            order.TotalAmount = Convert.ToDecimal(totalOrden);
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetOrder", new { id = order.Id }, order );
+                datelle.Subtotal = await _purchaseOrdersService.CalculateSubtotalOrderItem(detalle);
 
             }
 
+            order.TotalAmount = _purchaseOrdersService.CalcularTotalOrderItems((List<OrderItem>)order.OrderItems);
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("Getorder", new { id = order.Id }, order);
+
+        }
+           
         // DELETE: api/Orders/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
