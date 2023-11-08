@@ -52,25 +52,25 @@ namespace ApiRestBilling.Controllers
 
         // PUT: api/Customers/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/Customers/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, Customer customer)
+        public async Task<IActionResult> PutCustomer(int id, Customer updatedCustomer)
         {
-            if (id != customer.Id)
+            if (id != updatedCustomer.Id)
             {
-                return BadRequest();
+                return BadRequest("La ID en la URL no coincide con la ID en el cuerpo de la solicitud.");
             }
-
-            _context.Entry(customer).State = EntityState.Modified;
 
             try
             {
+                _context.Entry(updatedCustomer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!CustomerExists(id))
                 {
-                    return NotFound();
+                    return NotFound("Cliente no encontrado.");
                 }
                 else
                 {
@@ -80,6 +80,9 @@ namespace ApiRestBilling.Controllers
 
             return NoContent();
         }
+
+
+
 
         // POST: api/Customers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

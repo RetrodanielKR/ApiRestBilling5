@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiRestBilling5.Data;
 using ApiRestBilling5.Models;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect.Configuration;
-using System.Security.Cryptography;
-using System.Reflection.Metadata.Ecma335;
 using ApiRestBilling5.Services;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ApiRestBilling.Controllers
 {
@@ -19,24 +13,18 @@ namespace ApiRestBilling.Controllers
     public class OrderController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-
         private readonly IPurchaseOrdersService _purchaseOrdersService;
-        private OrderItem detalle;
 
         public OrderController(ApplicationDbContext context, IPurchaseOrdersService purchaseOrdersService)
         {
             _context = context;
-            _purchaseOrdersService = purchaseOrdersService; 
+            _purchaseOrdersService = purchaseOrdersService;
         }
 
         // GET: api/Orders
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
-            if (_context.Orders == null)
-            {
-                return NotFound();
-            }
             return await _context.Orders.Include(oi => oi.OrderItems).ToListAsync();
         }
 
@@ -44,13 +32,8 @@ namespace ApiRestBilling.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
-            if (_context.Orders == null)
-            {
-                return NotFound();
-            }
-            // var order = await _context.Orders.Include(oi => oi.OrderItems).FindAsync(id);
             var order = await _context.Orders.Include(oi => oi.OrderItems)
-                                     .FirstOrDefaultAsync(o => o.Id == id); // Asumiendo que el nombre del campo es 'Id'.
+                                     .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null)
             {
@@ -61,7 +44,6 @@ namespace ApiRestBilling.Controllers
         }
 
         // PUT: api/Orders/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrder(int id, Order order)
         {
@@ -92,42 +74,46 @@ namespace ApiRestBilling.Controllers
         }
 
         // POST: api/Orders
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        // POST: api/Orders
         [HttpPost]
         public async Task<ActionResult<Order>> PostOrder(Order order)
         {
-            if (_context.Orders == null)
-
+            // Verifica si el cliente existe
+            var customer = await _context.Customers.FindAsync(order.CustomerId);
+            if (customer == null)
             {
-                return Problem("Entity set 'ApplicationDbContext.Orders'  is null.");
+                return BadRequest("El cliente no existe.");
             }
 
-
-            foreach (var datelle in order.OrderItems)
-
+            // Verifica si los productos existen y calcula los subtotales
+            foreach (var item in order.OrderItems)
             {
-                datelle.UnitPrice = await _purchaseOrdersService.CheckUnitPrice(detalle);
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null)
+                {
+                    return BadRequest($"El producto con ID {item.ProductId} no existe.");
+                }
 
-                datelle.Subtotal = await _purchaseOrdersService.CalculateSubtotalOrderItem(detalle);
-
+                item.UnitPrice = product.UnitPrice;
+                item.Subtotal = item.UnitPrice * item.Quantity;
             }
 
-            order.TotalAmount = _purchaseOrdersService.CalcularTotalOrderItems((List<OrderItem>)order.OrderItems);
+            // Calcula el total de la orden
+            order.TotalAmount = order.OrderItems.Sum(item => item.Subtotal);
+
+            // Agrega la orden a la base de datos
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Getorder", new { id = order.Id }, order);
-
+            return CreatedAtAction("GetOrder", new { id = order.Id }, order);
         }
-           
+
+
         // DELETE: api/Orders/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
-            if (_context.Orders == null)
-            {
-                return NotFound();
-            }
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
@@ -142,7 +128,8 @@ namespace ApiRestBilling.Controllers
 
         private bool OrderExists(int id)
         {
-            return (_context.Orders?.Any(e => e.Id == id)).GetValueOrDefault();
+            return _context.Orders.Any(e => e.Id == id);
         }
     }
 }
+
