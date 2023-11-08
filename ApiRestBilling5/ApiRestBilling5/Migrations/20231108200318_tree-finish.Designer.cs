@@ -4,6 +4,7 @@ using ApiRestBilling5.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiRestBilling5.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231108200318_tree-finish")]
+    partial class treefinish
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,6 +78,7 @@ namespace ApiRestBilling5.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("OrderNumber")
+                        .HasMaxLength(128)
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("TotalAmount")

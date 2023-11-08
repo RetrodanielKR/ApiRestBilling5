@@ -3,8 +3,6 @@ using ApiRestBilling5.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace ApiRestBilling5.Controllers
 {
     [Route("api/[controller]")]
@@ -12,6 +10,7 @@ namespace ApiRestBilling5.Controllers
     public class SuppliersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+
         public SuppliersController(ApplicationDbContext context)
         {
             this._context = context;
@@ -21,36 +20,94 @@ namespace ApiRestBilling5.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Supplier>>> Get()
         {
-            if (_context.Suppliers == null)
+            var suppliers = await _context.Suppliers.ToListAsync();
+            if (suppliers == null) 
             {
                 return NotFound();
             }
-            return  await _context.Suppliers.ToListAsync();
+            return suppliers;
         }
 
         // GET api/<SuppliersController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult<Supplier>> Get(int id)
         {
-            return "value";
+            var supplier = await _context.Suppliers.FindAsync(id);
+
+            if (supplier == null)
+            {
+                return NotFound();
+            }
+
+            return supplier;
         }
 
         // POST api/<SuppliersController>
+
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<ActionResult<IEnumerable<Supplier>>> Post([FromBody] List<Supplier> supplier)
         {
+            if (_context.Suppliers == null || supplier == null || supplier.Count == 0)
+            {
+                return BadRequest("Datos no válidos o faltantes.");
+            }
+
+            _context.Suppliers.AddRange(supplier);
+            await _context.SaveChangesAsync();
+
+            return supplier;
         }
 
         // PUT api/<SuppliersController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] Supplier updatedSupplier)
         {
+            if (id != updatedSupplier.Id)
+            {
+                return BadRequest("Mal echo");
+            }
+
+            _context.Entry(updatedSupplier).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SupplierExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         // DELETE api/<SuppliersController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            var supplier = await _context.Suppliers.FindAsync(id);
+
+            if (supplier == null)
+            {
+                return NotFound();
+            }
+
+            _context.Suppliers.Remove(supplier);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool SupplierExists(int id)
+        {
+            return _context.Suppliers.Any(s => s.Id == id);
         }
     }
 }
