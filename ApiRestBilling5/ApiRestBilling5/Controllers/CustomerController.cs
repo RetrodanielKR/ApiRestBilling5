@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ApiRestBilling5.Models;
 using ApiRestBilling5.Data;
 
-namespace ApiRestBilling.Controllers
+namespace ApiRestBilling5.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

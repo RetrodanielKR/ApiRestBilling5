@@ -6,7 +6,7 @@ using ApiRestBilling5.Services;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ApiRestBilling.Controllers
+namespace ApiRestBilling5.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
